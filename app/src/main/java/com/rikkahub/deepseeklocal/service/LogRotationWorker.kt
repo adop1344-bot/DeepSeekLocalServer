@@ -8,17 +8,20 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 /** Periodic worker that prunes log rows older than 7 days. */
-@AndroidEntryPoint
 class LogRotationWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
 
-    @Inject lateinit var logRepository: LogRepository
+    /** Hilt entry point for retrieving the LogRepository inside a WorkManager worker. */
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface WorkerEntryPoint {
+        fun logRepository(): LogRepository
+    }
 
     override suspend fun doWork(): Result = try {
-        logRepository.rotate(7)
+        val ep = EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java)
+        ep.logRepository().rotate(7)
         Result.success()
     } catch (t: Throwable) {
         Result.retry()
