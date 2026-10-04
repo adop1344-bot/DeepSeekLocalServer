@@ -1,0 +1,17 @@
+*.deepseek_token
+.qwen_auth.json
+.env
+.env.*
+*.keystore
+*.jks
+secrets.properties
+local.properties
+*.log
+.gradle/
+build/
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/

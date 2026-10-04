@@ -1,0 +1,17 @@
+-keep class io.ktor.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-keep class kotlinx.serialization.** { *; }
+-keepattributes *Annotation*, InnerClasses, Signature, Exceptions
+-keepclassmembers class **$$serializer { *; }
+-keepclasseswithmembers class ** { kotlinx.serialization.KSerializer serializer(...); }
+-keep class dev.rikka.shizuku.** { *; }
+-keep class rikka.shizuku.** { *; }
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class androidx.room.** { *; }
+-dontwarn org.bouncycastle.**
+-dontwarn org.slf4j.**
+-dontwarn io.netty.**
+-dontwarn reactor.**
+-dontwarn org.conscrypt.**
+-dontwarn org.eclipse.jetty.**
