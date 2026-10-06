@@ -52,7 +52,7 @@ class ShizukuHelper(private val context: Context) {
             val method = Class.forName("rikka.shizuku.Shizuku")
                 .getDeclaredMethod("newProcess", Array<String>::class.java, Array<String>::class.java, String::class.java)
             method.isAccessible = true
-            val process = method.invoke(null, cmd, null, null) as? Process ?: return false
+            val process = method.invoke(null, cmd, null, null) as? java.lang.Process ?: return false
             process.waitFor()
             true
         } catch (t: Throwable) {

@@ -212,7 +212,7 @@ class OpenAiRoutes(
 
         call.respondTextWriter(ContentType.parse("text/event-stream")) {
             val writer: Writer = this
-            suspend fun sse(obj: JsonObject) {
+            fun sse(obj: JsonObject) {
                 writer.write("data: $obj\n\n")
                 writer.flush()
             }
@@ -235,7 +235,7 @@ class OpenAiRoutes(
             val reasoningBuffer = StringBuilder()
             var inThink = false
 
-            suspend fun flushContent() {
+            fun flushContent() {
                 if (contentBuffer.isEmpty()) return
                 sse(buildJsonObject {
                     put("id", JsonPrimitive(id))
@@ -253,7 +253,7 @@ class OpenAiRoutes(
                 contentBuffer.clear()
             }
 
-            suspend fun flushReasoning() {
+            fun flushReasoning() {
                 if (reasoningBuffer.isEmpty()) return
                 sse(buildJsonObject {
                     put("id", JsonPrimitive(id))
