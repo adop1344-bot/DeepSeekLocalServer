@@ -74,7 +74,6 @@
     <string name="about_github">GitHub</string>
     <string name="about_license">MIT License</string>
     <string name="about_creator">Created by @lexove (Telegram)</string>
-    <string name="about_thanks">Thanks: DeepSeek, Ktor, Rikka Shizuku</string>
     <string name="about_report_bug">Report a bug</string>
     <string name="notif_channel_name">Server</string>
     <string name="notif_channel_desc">Local server status notification</string>

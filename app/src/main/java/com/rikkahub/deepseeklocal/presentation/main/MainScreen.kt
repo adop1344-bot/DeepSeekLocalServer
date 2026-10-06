@@ -3,7 +3,6 @@ package com.rikkahub.deepseeklocal.presentation.main
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -33,8 +32,6 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -65,9 +63,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.rikkahub.deepseeklocal.R
 import com.rikkahub.deepseeklocal.domain.model.ServerState
 import com.rikkahub.deepseeklocal.presentation.server.ServerController
+import com.rikkahub.deepseeklocal.presentation.theme.GlassCard
 import kotlinx.coroutines.launch
 
-/** Main status screen with Material You styling. */
+/** iOS-glass styled server status screen. */
 @Composable
 fun MainScreen(vm: MainViewModel = hiltViewModel(), onOpenChat: () -> Unit = {}) {
     val state by vm.state.collectAsState()
@@ -81,7 +80,6 @@ fun MainScreen(vm: MainViewModel = hiltViewModel(), onOpenChat: () -> Unit = {})
     val url = (state as? ServerState.Running)?.baseUrl ?: "—"
     val startedAt = (state as? ServerState.Running)?.startedAtMs ?: 0L
 
-    // Pulsing animation for the running indicator.
     val pulse = rememberInfiniteTransition(label = "pulse")
     val ringScale by pulse.animateFloat(
         initialValue = 1f,
@@ -99,214 +97,216 @@ fun MainScreen(vm: MainViewModel = hiltViewModel(), onOpenChat: () -> Unit = {})
     val accent = statusColor(state)
     val accentAnimated by animateColorAsState(accent, label = "accent")
     val buttonContainer by animateColorAsState(
-        if (running) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+        if (running) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primary,
         label = "btnContainer",
     )
     val buttonContent by animateColorAsState(
-        if (running) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
+        if (running) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimary,
         label = "btnContent",
     )
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        Column(
+    // Soft ambient background
+    val bg = MaterialTheme.colorScheme.background
+    val ambient = Brush.radialGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+            bg,
+        ),
+        radius = 900f,
+    )
+
+    Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
+        Box(
             Modifier
                 .fillMaxSize()
+                .background(ambient)
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Hero status card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ),
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column(
-                    Modifier.fillMaxWidth().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                // Hero glass card
+                GlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    alpha = 0.58f,
                 ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) {
-                        // animated halo ring
-                        Box(
-                            Modifier
-                                .size(140.dp)
-                                .scale(ringScale)
-                                .background(accentAnimated.copy(alpha = ringAlpha), CircleShape),
-                        )
-                        // solid status disc
-                        Box(
-                            Modifier
-                                .size(120.dp)
-                                .background(
-                                    Brush.linearGradient(
-                                        listOf(
-                                            accentAnimated,
-                                            accentAnimated.copy(alpha = 0.78f),
+                    Column(
+                        Modifier.fillMaxWidth().padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) {
+                            Box(
+                                Modifier
+                                    .size(140.dp)
+                                    .scale(ringScale)
+                                    .background(accentAnimated.copy(alpha = ringAlpha), CircleShape),
+                            )
+                            Box(
+                                Modifier
+                                    .size(120.dp)
+                                    .background(
+                                        Brush.linearGradient(
+                                            listOf(accentAnimated, accentAnimated.copy(alpha = 0.78f)),
                                         ),
+                                        CircleShape,
                                     ),
-                                    CircleShape,
-                                ),
-                            contentAlignment = Alignment.Center,
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        Icons.Filled.PowerSettingsNew,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(34.dp),
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        statusLabel(state),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(20.dp))
+
+                        Button(
+                            onClick = {
+                                if (running) ServerController.stop(appCtx)
+                                else ServerController.start(appCtx)
+                            },
+                            enabled = !starting,
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = buttonContainer,
+                                contentColor = buttonContent,
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    Icons.Filled.PowerSettingsNew,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(34.dp),
-                                )
-                                Spacer(Modifier.height(6.dp))
+                            Icon(Icons.Filled.PowerSettingsNew, contentDescription = null)
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                stringResource(if (running) R.string.server_stop else R.string.server_start),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(14.dp))
+
+                // Address glass card
+                GlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    alpha = 0.50f,
+                ) {
+                    Column(Modifier.padding(20.dp)) {
+                        Text(
+                            stringResource(R.string.tab_server).uppercase(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Surface(
+                                color = Color.White.copy(alpha = 0.10f),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier.weight(1f),
+                            ) {
                                 Text(
-                                    statusLabel(state),
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
+                                    url,
+                                    fontFamily = FontFamily.Monospace,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                )
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            FilledTonalButton(
+                                onClick = {
+                                    clipboard.setText(AnnotatedString(url))
+                                    scope.launch { snackbar.showSnackbar("Скопировано") }
+                                },
+                                shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                            ) {
+                                Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                            }
+                        }
+
+                        if (running) {
+                            Spacer(Modifier.height(14.dp))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                GlassPill(
+                                    icon = { Icon(Icons.Filled.Timer, null, Modifier.size(16.dp)) },
+                                    text = uptime(startedAt),
+                                    modifier = Modifier.weight(1f),
+                                )
+                                GlassPill(
+                                    icon = { Icon(Icons.Filled.Speed, null, Modifier.size(16.dp)) },
+                                    text = "Online",
+                                    modifier = Modifier.weight(1f),
                                 )
                             }
                         }
                     }
-
-                    Spacer(Modifier.height(20.dp))
-
-                    // Primary action
-                    Button(
-                        onClick = {
-                            if (running) ServerController.stop(appCtx)
-                            else ServerController.start(appCtx)
-                        },
-                        enabled = !starting,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = buttonContainer,
-                            contentColor = buttonContent,
-                        ),
-                    ) {
-                        Icon(Icons.Filled.PowerSettingsNew, contentDescription = null)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            stringResource(if (running) R.string.server_stop else R.string.server_start),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
                 }
-            }
 
-            Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(14.dp))
 
-            // Address card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            ) {
-                Column(Modifier.padding(20.dp)) {
-                    Text(
-                        stringResource(R.string.tab_server).uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    GlassAction(
+                        icon = Icons.Filled.Chat,
+                        label = stringResource(R.string.tab_chat),
+                        onClick = onOpenChat,
+                        modifier = Modifier.weight(1f),
                     )
-                    Spacer(Modifier.height(10.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(
-                                url,
-                                fontFamily = FontFamily.Monospace,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                            )
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        FilledTonalButton(
-                            onClick = {
-                                clipboard.setText(AnnotatedString(url))
-                                scope.launch { snackbar.showSnackbar("Скопировано") }
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                        ) {
-                            Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
-                        }
-                    }
-
-                    if (running) {
-                        Spacer(Modifier.height(14.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            InfoPill(
-                                icon = { Icon(Icons.Filled.Timer, null, Modifier.size(16.dp)) },
-                                text = uptime(startedAt),
-                                modifier = Modifier.weight(1f),
-                            )
-                            InfoPill(
-                                icon = { Icon(Icons.Filled.Speed, null, Modifier.size(16.dp)) },
-                                text = "Online",
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
+                    GlassAction(
+                        icon = Icons.Filled.QrCode,
+                        label = "QR",
+                        onClick = {
+                            clipboard.setText(AnnotatedString(url))
+                            scope.launch { snackbar.showSnackbar("Адрес скопирован") }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
-            }
 
-            Spacer(Modifier.height(16.dp))
-
-            // Quick actions
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                QuickAction(
-                    icon = Icons.Filled.Chat,
-                    label = stringResource(R.string.tab_chat),
-                    onClick = onOpenChat,
-                    modifier = Modifier.weight(1f),
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    stringResource(R.string.common_http_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
                 )
-                QuickAction(
-                    icon = Icons.Filled.QrCode,
-                    label = "QR",
-                    onClick = {
-                        clipboard.setText(AnnotatedString(url))
-                        scope.launch { snackbar.showSnackbar("Адрес скопирован") }
-                    },
-                    modifier = Modifier.weight(1f),
-                )
+                Spacer(Modifier.height(8.dp))
             }
-
-            Spacer(Modifier.height(16.dp))
-            Text(
-                stringResource(R.string.common_http_warning),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-private fun InfoPill(icon: @Composable () -> Unit, text: String, modifier: Modifier = Modifier) {
+private fun GlassPill(icon: @Composable () -> Unit, text: String, modifier: Modifier = Modifier) {
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        shape = RoundedCornerShape(14.dp),
+        color = Color.White.copy(alpha = 0.12f),
+        shape = RoundedCornerShape(16.dp),
         modifier = modifier,
     ) {
         Row(
@@ -318,7 +318,6 @@ private fun InfoPill(icon: @Composable () -> Unit, text: String, modifier: Modif
             Text(
                 text,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
                 fontWeight = FontWeight.Medium,
             )
         }
@@ -326,31 +325,28 @@ private fun InfoPill(icon: @Composable () -> Unit, text: String, modifier: Modif
 }
 
 @Composable
-private fun QuickAction(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+private fun GlassAction(
+    icon: ImageVector,
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        onClick = onClick,
+    GlassCard(
         modifier = modifier.height(84.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-        ),
+        alpha = 0.45f,
     ) {
         Column(
-            Modifier.fillMaxSize().padding(14.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(14.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
         ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(6.dp))
             Text(
                 label,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
                 fontWeight = FontWeight.SemiBold,
             )
         }

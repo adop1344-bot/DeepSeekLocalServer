@@ -18,10 +18,10 @@ private val LightColors = lightColorScheme()
 private val DarkColors = darkColorScheme()
 
 private val AppShapes = Shapes(
-    extraLarge = RoundedCornerShape(28.dp),
-    large = RoundedCornerShape(20.dp),
-    medium = RoundedCornerShape(14.dp),
-    small = RoundedCornerShape(8.dp),
+    extraLarge = RoundedCornerShape(34.dp),
+    large = RoundedCornerShape(26.dp),
+    medium = RoundedCornerShape(18.dp),
+    small = RoundedCornerShape(12.dp),
 )
 
 /** Root theme. Honors dynamic color and the user's explicit light/dark choice. */
