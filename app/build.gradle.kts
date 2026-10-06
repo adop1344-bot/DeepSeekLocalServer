@@ -113,6 +113,7 @@ dependencies {
     implementation(libs.security.crypto)
     implementation(libs.okhttp)
     implementation(libs.bouncycastle)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
