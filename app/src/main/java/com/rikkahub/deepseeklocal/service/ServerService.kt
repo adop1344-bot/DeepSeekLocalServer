@@ -50,7 +50,7 @@ class ServerService : Service() {
     @Inject lateinit var logRepository: LogRepository
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var engine: io.ktor.server.engine.ApplicationEngine? = null
+    private var engine: io.ktor.server.engine.EmbeddedServer<*, *>? = null
     private var startedAt = 0L
     private var currentUrl: String = ""
 

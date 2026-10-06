@@ -38,20 +38,20 @@ class OpenAiRoutes(
 
     fun install(routing: Route) {
         routing.route("/") {
-            get("health") { call ->
+            get("health") {
                 call.respondText(
                     buildJsonObject { put("ok", JsonPrimitive(true)) }.toString(),
                     ContentType.Application.Json,
                 )
             }
-            post("reset") { call ->
+            post("reset") {
                 sessions.resetAll()
                 call.respondText(
                     buildJsonObject { put("ok", JsonPrimitive(true)) }.toString(),
                     ContentType.Application.Json,
                 )
             }
-            get("auth") { call ->
+            get("auth") {
                 val token = tokenProvider()
                 call.respondText(
                     buildJsonObject {
@@ -61,7 +61,7 @@ class OpenAiRoutes(
                     ContentType.Application.Json,
                 )
             }
-            post("auth") { call ->
+            post("auth") {
                 val body = call.receiveText()
                 val obj = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
                 val token = (obj?.get("token") as? JsonPrimitive)?.content
@@ -86,10 +86,10 @@ class OpenAiRoutes(
                     ContentType.Application.Json,
                 )
             }
-            get("v1/models") { call -> call.respondModels() }
-            get("models") { call -> call.respondModels() }
-            post("v1/chat/completions") { call -> handleChat(call) }
-            post("chat/completions") { call -> handleChat(call) }
+            get("v1/models") { call.respondModels() }
+            get("models") { call.respondModels() }
+            post("v1/chat/completions") { handleChat(call) }
+            post("chat/completions") { handleChat(call) }
         }
     }
 

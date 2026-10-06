@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -57,6 +58,7 @@ fun MainScreen(vm: MainViewModel = hiltViewModel()) {
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     val clipboard = LocalClipboardManager.current
+    val appCtx = LocalContext.current
 
     val running = state is ServerState.Running
     val url = (state as? ServerState.Running)?.baseUrl ?: "—"
@@ -71,7 +73,7 @@ fun MainScreen(vm: MainViewModel = hiltViewModel()) {
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    if (running) ServerController.stop() else ServerController.start()
+                    if (running) ServerController.stop(appCtx) else ServerController.start(appCtx)
                 },
                 icon = { Icon(Icons.Filled.Power, contentDescription = null) },
                 text = { Text(stringResource(if (running) R.string.server_stop else R.string.server_start)) },

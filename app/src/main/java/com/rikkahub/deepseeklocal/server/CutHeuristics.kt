@@ -16,7 +16,7 @@ object CutHeuristics {
         if (t.last() in TERMINATORS) {
             if (count(t, "```") % 2 != 0) return true
             if (count(t, "`") % 2 != 0) return true
-            if (count(t, '(') > count(t, ')')) return true
+            if (count(t, "(") > count(t, ")")) return true
             return false
         }
 
@@ -33,7 +33,7 @@ object CutHeuristics {
         }
 
         if (count(t, "```") % 2 != 0) return true
-        if (count(t, '(') > count(t, ')')) return true
+        if (count(t, "(") > count(t, ")")) return true
 
         val words = t.split(Regex("\\s+"))
         val lastWord = words.lastOrNull().orEmpty()

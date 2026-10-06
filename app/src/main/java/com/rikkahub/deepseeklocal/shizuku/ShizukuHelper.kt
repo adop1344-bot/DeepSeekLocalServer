@@ -44,19 +44,21 @@ class ShizukuHelper(private val context: Context) {
      * Starts the given service via a Shizuku shell process, which survives app-kill
      * on Android 12+ where normal background starts are throttled.
      */
-    fun startServiceViaShizuku(serviceClass: Class<*>): Boolean = try {
+    fun startServiceViaShizuku(serviceClass: Class<*>): Boolean {
         if (!hasPermission()) return false
-        val component = ComponentName(context, serviceClass)
-        val cmd = arrayOf(
-            "am", "start-foreground-service",
-            "-n", component.flattenToString(),
-        )
-        val process = Shizuku.newProcess(cmd, null, null)
-        process.waitFor()
-        true
-    } catch (t: Throwable) {
-        Log.w(TAG, "startServiceViaShizuku failed", t)
-        false
+        return try {
+            val component = ComponentName(context, serviceClass)
+            val cmd = arrayOf("am", "start-foreground-service", "-n", component.flattenToString())
+            val method = Class.forName("rikka.shizuku.Shizuku")
+                .getDeclaredMethod("newProcess", Array<String>::class.java, Array<String>::class.java, String::class.java)
+            method.isAccessible = true
+            val process = method.invoke(null, cmd, null, null) as? Process ?: return false
+            process.waitFor()
+            true
+        } catch (t: Throwable) {
+            Log.w(TAG, "startServiceViaShizuku failed", t)
+            false
+        }
     }
 
     companion object {

@@ -1,7 +1,6 @@
 package com.rikkahub.deepseeklocal.data.repository
 
 import com.rikkahub.deepseeklocal.data.remote.deepseek.DeepSeekClient
-import com.rikkahub.deepseeklocal.data.remote.deepseek.PromptBuilder as RemotePromptBuilder
 import javax.inject.Inject
 import javax.inject.Singleton
 
