@@ -83,7 +83,7 @@ fun AppRoot() {
                 label = "tab",
             ) { idx ->
                 when (idx) {
-                    0 -> MainScreen()
+                    0 -> MainScreen(onOpenChat = { selected = 1 })
                     1 -> ChatScreen()
                     2 -> LogsScreen()
                     3 -> SettingsScreen(onOpenOnboarding = { onboarding = true })

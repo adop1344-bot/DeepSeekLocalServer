@@ -7,6 +7,7 @@ import com.rikkahub.deepseeklocal.data.local.db.LogDatabase
 import com.rikkahub.deepseeklocal.data.local.prefs.SettingsDataStore
 import com.rikkahub.deepseeklocal.data.local.prefs.TokenStore
 import com.rikkahub.deepseeklocal.data.remote.deepseek.DeepSeekClient
+import com.rikkahub.deepseeklocal.domain.ServerStateHolder
 import com.rikkahub.deepseeklocal.server.SessionManager
 import dagger.Module
 import dagger.Provides
@@ -49,4 +50,7 @@ object AppModule {
 
     @Provides @Singleton
     fun provideSessionManager() = SessionManager()
+
+    @Provides @Singleton
+    fun provideServerStateHolder() = ServerStateHolder()
 }

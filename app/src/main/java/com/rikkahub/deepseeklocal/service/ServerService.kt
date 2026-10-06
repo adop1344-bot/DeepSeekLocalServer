@@ -17,7 +17,9 @@ import com.rikkahub.deepseeklocal.R
 import com.rikkahub.deepseeklocal.data.local.prefs.SettingsDataStore
 import com.rikkahub.deepseeklocal.data.remote.deepseek.DeepSeekClient
 import com.rikkahub.deepseeklocal.data.repository.LogRepository
+import com.rikkahub.deepseeklocal.domain.ServerStateHolder
 import com.rikkahub.deepseeklocal.domain.model.LogLevel
+import com.rikkahub.deepseeklocal.domain.model.ServerState
 import com.rikkahub.deepseeklocal.server.OpenAiRoutes
 import com.rikkahub.deepseeklocal.server.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,6 +50,7 @@ class ServerService : Service() {
     @Inject lateinit var client: DeepSeekClient
     @Inject lateinit var sessions: SessionManager
     @Inject lateinit var logRepository: LogRepository
+    @Inject lateinit var stateHolder: ServerStateHolder
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var engine: io.ktor.server.engine.EmbeddedServer<*, *>? = null
@@ -74,6 +77,7 @@ class ServerService : Service() {
     }
 
     private fun startServer() {
+        stateHolder.set(ServerState.Starting())
         scope.launch {
             try {
                 val cfg = settings.settings.first()
@@ -107,12 +111,14 @@ class ServerService : Service() {
                     routing { routes.install(this) }
                 }.start(wait = false)
 
+                stateHolder.set(ServerState.Running(currentUrl, startedAt))
                 logRepository.append(LogLevel.INFO, "Server", "started on $host:${cfg.port}")
                 updateNotification("Слушает $currentUrl (uptime: 0s)")
                 startUptimeUpdater()
             } catch (t: Throwable) {
                 Log.e(TAG, "server start failed", t)
                 scope.launch { logRepository.append(LogLevel.ERROR, "Server", "start failed: ${t.message}") }
+                stateHolder.set(ServerState.Error(t.message ?: "start failed"))
                 updateNotification("Ошибка: ${t.message}")
             }
         }
@@ -170,6 +176,7 @@ class ServerService : Service() {
     private fun stopEverything() {
         try { engine?.stop(1000, 2000) } catch (_: Throwable) {}
         engine = null
+        stateHolder.set(ServerState.Stopped)
         scope.launch { logRepository.append(LogLevel.INFO, "Server", "stopped") }
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
