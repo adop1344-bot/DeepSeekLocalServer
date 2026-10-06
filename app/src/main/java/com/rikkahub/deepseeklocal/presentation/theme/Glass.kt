@@ -18,19 +18,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * iOS-style "liquid glass" surfaces without real blur (which is expensive /
- * unstable on older Android): translucent fills, soft top-left highlight,
- * thin white border. Looks convincingly frosted and stays cheap to render.
+ * iOS-style "liquid glass" surfaces without real blur (expensive/unstable on older
+ * Android): translucent fills, soft top-left highlight, thin white border, gentle
+ * bottom shadow. Cheap to render, convincing frosted look.
  */
 
-private val GlassShape = RoundedCornerShape(28.dp)
+val GlassShapeLg = RoundedCornerShape(28.dp)
+val GlassShapeMd = RoundedCornerShape(22.dp)
+val GlassShapeSm = RoundedCornerShape(16.dp)
 
 @Composable
 fun Modifier.glassSurface(
-    shape: Shape = GlassShape,
+    shape: Shape = GlassShapeLg,
     tint: Color = MaterialTheme.colorScheme.surface,
     alpha: Float = 0.55f,
     borderWidth: Dp = 1.dp,
+    borderAlpha: Float = 0.18f,
 ): Modifier {
     val highlight = Color.White.copy(alpha = 0.10f)
     val shadow = Color.Black.copy(alpha = 0.06f)
@@ -61,18 +64,38 @@ fun Modifier.glassSurface(
                 endY = 900f,
             ),
         )
-        .border(BorderStroke(borderWidth, Color.White.copy(alpha = 0.18f)), shape)
+        .border(BorderStroke(borderWidth, Color.White.copy(alpha = borderAlpha)), shape)
 }
 
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    shape: Shape = GlassShape,
+    shape: Shape = GlassShapeLg,
     alpha: Float = 0.55f,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
         modifier = modifier.glassSurface(shape = shape, alpha = alpha),
         content = content,
+    )
+}
+
+/** Fullscreen ambient gradient backdrop used by every tab. */
+@Composable
+fun Modifier.ambientBackground(): Modifier {
+    val bg = MaterialTheme.colorScheme.background
+    val p = MaterialTheme.colorScheme.primary
+    val t = MaterialTheme.colorScheme.tertiary
+    return this.background(
+        Brush.radialGradient(
+            colors = listOf(p.copy(alpha = 0.16f), bg),
+            radius = 1100f,
+        ),
+    ).background(
+        Brush.radialGradient(
+            colors = listOf(t.copy(alpha = 0.10f), Color.Transparent),
+            radius = 900f,
+            center = Offset(1200f, 1800f),
+        ),
     )
 }

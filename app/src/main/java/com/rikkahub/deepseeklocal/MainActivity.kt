@@ -10,24 +10,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.rikkahub.deepseeklocal.data.local.prefs.AppSettings
-import com.rikkahub.deepseeklocal.data.repository.SettingsRepository
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.rikkahub.deepseeklocal.presentation.AppRoot
+import com.rikkahub.deepseeklocal.presentation.MainActivityViewModel
 import com.rikkahub.deepseeklocal.presentation.theme.DeepSeekTheme
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 /** Single-activity host for the whole Compose UI. */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject lateinit var settingsRepository: SettingsRepository
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val settings by settingsRepository.settings.collectAsState(initial = AppSettings())
+            val vm: MainActivityViewModel = hiltViewModel()
+            val settings by vm.settings.collectAsState()
             DeepSeekTheme(
                 themeMode = settings.themeMode,
                 dynamicColor = settings.dynamicColor,
