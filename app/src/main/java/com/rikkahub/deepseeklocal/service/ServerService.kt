@@ -89,6 +89,16 @@ class ServerService : Service() {
                     tokenProvider = { tokenStore.getToken() },
                     modelProvider = { cfg.model },
                     onTokenCaptured = { tokenStore.setToken(it) },
+                    onTokenAction = { action, id, tok ->
+                        when (action) {
+                            "add" -> { if (tok != null) tokenStore.add(tok); true }
+                            "update" -> { if (tok != null) tokenStore.update(id, tok) else false }
+                            "remove" -> { tokenStore.remove(id); true }
+                            "setActive" -> { tokenStore.setActive(id); true }
+                            else -> false
+                        }
+                    },
+                    onTokenFailed = { tokenStore.markFailActive() },
                     onLog = { level, msg -> scope.launch { logRepository.append(runCatching { LogLevel.valueOf(level) }.getOrDefault(LogLevel.INFO), "Server", msg) } },
                 )
 

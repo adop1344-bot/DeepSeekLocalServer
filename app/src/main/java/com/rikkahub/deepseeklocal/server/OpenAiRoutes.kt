@@ -31,6 +31,8 @@ class OpenAiRoutes(
     private val tokenProvider: suspend () -> String?,
     private val modelProvider: suspend () -> String,
     private val onTokenCaptured: suspend (String) -> Unit,
+    private val onTokenAction: (String, Int, String?) -> Boolean = { _, _, _ -> false },
+    private val onTokenFailed: () -> Unit = {},
     private val onLog: (String, String) -> Unit = { _, _ -> },
 ) {
 
@@ -86,6 +88,8 @@ class OpenAiRoutes(
                     ContentType.Application.Json,
                 )
             }
+            get("tokens") { call.respondTokensUi() }
+            post("token") { call.handleTokenApi() }
             get("v1/models") { call.respondModels() }
             get("models") { call.respondModels() }
             post("v1/chat/completions") { handleChat(call) }
@@ -314,6 +318,7 @@ class OpenAiRoutes(
                     },
                 )
             }.getOrElse { e ->
+                onTokenFailed()
                 onLog("ERROR", "ask failed: ${e.message}")
                 sse(buildJsonObject {
                     put("id", JsonPrimitive(id))
@@ -361,4 +366,27 @@ class OpenAiRoutes(
             put("type", JsonPrimitive(type))
         })
     }
+    private suspend fun ApplicationCall.respondTokensUi() {
+        respondText(TOKENS_UI_HTML, ContentType.Text.Html)
+    }
+
+    private suspend fun ApplicationCall.handleTokenApi() {
+        val body = receiveText()
+        val obj = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
+        if (obj == null) {
+            respondText(buildJsonObject { put("ok", JsonPrimitive(false)); put("error", JsonPrimitive("bad json")) }.toString(), ContentType.Application.Json, HttpStatusCode.BadRequest)
+            return
+        }
+        val action = (obj["action"] as? JsonPrimitive)?.content ?: ""
+        val id = (obj["id"] as? JsonPrimitive)?.content?.toIntOrNull() ?: -1
+        val token = (obj["token"] as? JsonPrimitive)?.content
+        val ok = onTokenAction(action, id, token)
+        respondText(buildJsonObject { put("ok", JsonPrimitive(ok)) }.toString(), ContentType.Application.Json)
+    }
+
+    companion object {
+        private const val TOKENS_UI_HTML = """<!doctype html><html><head><meta charset="utf-8"><title>DeepSeek Tokens</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:16px;font-family:system-ui,sans-serif;background:#0e0e10;color:#eee}h1{font-size:20px}textarea{width:100%;height:80px;background:#1c1c1f;color:#eee;border:0;border-radius:8px;padding:8px;font-family:monospace}button{padding:8px 12px;margin:4px 4px 4px 0;border:0;border-radius:8px;background:#2196f3;color:#fff;font-weight:600}.d{background:#5a2a2a;color:#f88}.c{background:#1c1c1f;border-radius:10px;padding:10px;margin:8px 0}.a{color:#4caf50}</style></head><body><h1>Токены DeepSeek</h1><div id="list"></div><h3>Добавить токен</h3><textarea id="t" placeholder="Bearer ..."></textarea><br><button onclick="add()">Добавить</button><script>function post(b){return fetch('/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json())}function render(l){document.getElementById('list').innerHTML=l.map(t=>'<div class="c">'+(t.active?'<span class="a">● </span>':'○ ')+t.name+' · len '+t.tokenLen+(t.failCount?' fail:'+t.failCount:'')+'<br><button onclick="sel('+t.id+')">Выбр</button><button class="d" onclick="del('+t.id+')">Удалить</button></div>').join('')}function load(){fetch('/tokens').then(r=>r.json()).then(j=>render(j.tokens||[]))}function add(){var t=document.getElementById('t').value.trim();if(!t)return;post({action:'add',token:t}).then(load)}function del(id){if(confirm('Удалить?'))post({action:'remove',id:id}).then(load)}function sel(id){post({action:'setActive',id:id}).then(load)}load()</script></body></html>"""
+    }
+
+
 }

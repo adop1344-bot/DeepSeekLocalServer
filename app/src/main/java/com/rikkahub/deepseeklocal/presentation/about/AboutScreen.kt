@@ -28,10 +28,11 @@ fun AboutScreen() {
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_about)) }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.about_creator))
             Text(stringResource(R.string.about_thanks))
             Text(stringResource(R.string.about_license))
             Button(onClick = {
-                val i = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:dev@example.com?subject=DeepSeekLocalServer"))
+                val i = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:lexove@proton.me?subject=DeepSeekLocalServer"))
                 ctx.startActivity(i)
             }) { Text(stringResource(R.string.about_report_bug)) }
         }
